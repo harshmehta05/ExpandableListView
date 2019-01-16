@@ -6,7 +6,9 @@ import java.util.List;
 
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.Typeface;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,7 +19,14 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class ExpandableListAdapter extends BaseExpandableListAdapter {
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
+
+public class ExpandableListAdapter extends BaseExpandableListAdapter  {
 
     private Context _context;
     TextView editTextAnswer;
@@ -28,17 +37,103 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
     String[] ansArray;
     String[] questionArray;
 
+    String deptName;
+    String companyName;
+    String alumniName;
+
+
+    FirebaseDatabase database = FirebaseDatabase.getInstance();
+    DatabaseReference deptRef;
 
     public ExpandableListAdapter(Context context, List<String> listDataHeader,
-                                 HashMap<String, List<String>> listChildData) {
+                                 HashMap<String, List<String>> listChildData,String deptName,String companyName,String alumniName) {
         this._context = context;
         this._listDataHeader = listDataHeader;
         this._listDataChild = listChildData;
         questionAnswerModels = new ArrayList<>();
-        ansArray = new String[this._listDataHeader.size()];
-        questionArray = new String[this._listDataHeader.size()];
+        this.deptName = deptName;
+        this.companyName = companyName;
+        this.alumniName = alumniName;
+        ansArray = new String[100];
+        questionArray = new String[100];
     }
 
+
+    public void setAnswerFirebase(final String currentQuestion, final String currentAnswer)
+    {
+
+        final String alumniParKey;
+        //Dept Name
+        String str1 = "Computers";
+
+        //Company name
+        String str2 = "Google";
+
+        //Alumni Name
+        final String str3 = "Yash HEY";
+
+        deptRef = database.getReference("Departments").child(str1);
+        DatabaseReference companyRef = deptRef.child("Companies");
+        DatabaseReference companyRef2=companyRef.child(str2);
+        final DatabaseReference alumniRef=companyRef2.child("Alumnis");
+        //DatabaseReference alumniRef2=alumniRef.child(str3);*/
+
+
+        alumniRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+
+
+                String alumniParKey = "";
+                String questionParKey = "";
+
+                for (DataSnapshot alumniSnapshot : dataSnapshot.getChildren())
+                {
+                    String alumniName = alumniSnapshot.child("Name").getValue().toString().trim();
+                    if (str3.equals(alumniName))
+                    {
+
+                        alumniParKey = alumniSnapshot.getKey();
+
+                        for (DataSnapshot qSnapshot: alumniSnapshot.child("Questions").getChildren())
+                        {
+
+                            String question = qSnapshot.child("question").getValue().toString();
+                            if (question.equals(currentQuestion))
+                            {
+                                 questionParKey = qSnapshot.getKey();
+                            }
+
+                        }
+                    }
+
+                }
+
+                DatabaseReference alumniRef2 = alumniRef.child(alumniParKey);
+                DatabaseReference questionsRef = alumniRef2.child("Questions");
+                DatabaseReference questionsRef2 = questionsRef.child(questionParKey);
+
+
+                QuestionAnswerModel model = new QuestionAnswerModel(currentQuestion,currentAnswer);
+                questionsRef2.setValue(model);
+                Toast.makeText(_context,"Updated Databaswe",Toast.LENGTH_SHORT).show();
+
+
+
+
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+
+
+
+
+
+    }
 
 
     @Override
@@ -128,8 +223,12 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
                     ansArray[groupPosition] = ans;
                     questionArray[groupPosition] = question;
 
+
+
                 }
-                Toast.makeText(_context,"SAVE ANS :"+groupPosition,Toast.LENGTH_SHORT).show();
+                setAnswerFirebase(questionArray[groupPosition],ansArray[groupPosition]);
+                notifyDataSetChanged();
+                Toast.makeText(_context,"SAVED YOUR RESPONSE",Toast.LENGTH_SHORT).show();
 
                 editTextAnswer.setText("");
 
@@ -201,4 +300,6 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
     public boolean isChildSelectable(int groupPosition, int childPosition) {
         return true;
     }
+
+
 }

@@ -26,7 +26,22 @@
             android:id="@+id/lvExp"
             android:layout_height="wrap_content"
             android:layout_width="match_parent" />
+    <ProgressBar
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:id="@+id/progress_circular"/>
 
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/refreshButton"
+        android:text="Refresh"
+        android:layout_marginTop="40dp"
+        android:background="@drawable/button_shape"
+        android:textColor="@android:color/white"
+        android:layout_gravity="center_horizontal"/>
 
     <Button
         android:layout_width="wrap_content"

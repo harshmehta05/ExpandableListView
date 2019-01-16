@@ -13,6 +13,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ExpandableListView;
+import android.widget.ProgressBar;
 
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -30,6 +31,17 @@ public class MainActivity extends Activity {
     DatabaseReference deptRef;
     Context context;
     ArrayList<QuestionAnswerModel> list;
+    ProgressBar progressBar;
+
+
+    //Dept Name
+    String str1 ;
+
+    //Company name
+    String str2 ;
+
+    //Alumni Name
+    String str3 ;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,7 +55,7 @@ public class MainActivity extends Activity {
         // get the listview
         expListView = (ExpandableListView) findViewById(R.id.lvExp);
 
-
+        progressBar = findViewById(R.id.progress_circular);
 
 
 
@@ -52,9 +64,9 @@ public class MainActivity extends Activity {
 
 
         // preparing list data
-       // prepareListData();
+        //prepareListData();
 
-        listAdapter = new ExpandableListAdapter(this, listDataHeader, listDataChild);
+        listAdapter = new ExpandableListAdapter(this, listDataHeader, listDataChild, str1, str2, str3);
 
         expListView.setOnGroupExpandListener(new ExpandableListView.OnGroupExpandListener() {
 
@@ -89,6 +101,18 @@ public class MainActivity extends Activity {
 
             }
         });
+
+        Button refresh =  findViewById(R.id.refreshButton);
+        refresh.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                //Intent i = getIntent();
+                //finish();
+                //startActivity(i);
+
+                listAdapter.notifyDataSetChanged();
+            }
+        });
     }
 
     /*
@@ -99,18 +123,19 @@ public class MainActivity extends Activity {
     private void getUnansweredQuestionList()
     {
 
+        progressBar.setVisibility(View.VISIBLE);
         list = new ArrayList<>();
         listDataHeader = new ArrayList<String>();
         listDataChild = new HashMap<String, List<String>>();
 
         //Dept Name
-        String str1 = "Computers";
+         str1 = "Computers";
 
         //Company name
-        String str2 = "Google";
+         str2 = "Google";
 
         //Alumni Name
-        final String str3 = "Yash HEY";
+          str3 = "Yash HEY";
 
         deptRef = database.getReference("Departments").child(str1);
         DatabaseReference companyRef = deptRef.child("Companies");
@@ -146,13 +171,44 @@ public class MainActivity extends Activity {
 
                             list.add(new QuestionAnswerModel(question,answer));
 
-                            
+
+
+
                         }
+                        //q1 = list.get(0).getQuestion();
+
+
+
+                        for (int i=0;i<list.size();i++)
+                        {
+                            if (list.get(i).getAnswer().equals(""))
+                            {
+                                listDataHeader.add(list.get(i).getQuestion());
+                            }
+                        }
+                       // listDataHeader.add(q1);
+
+                        listAdapter.notifyDataSetChanged();
+
+                        List<String> top250 = new ArrayList<String>();
+                        top250.add("The Shawshank Redemption");
+
+                        for (int j=0;j<listDataHeader.size();j++)
+                        {
+                            listDataChild.put(listDataHeader.get(j), top250); // Header, Child data
+                            //listDataChild.put(listDataHeader.get(1), top250);
+                            //listDataChild.put(listDataHeader.get(2), top250);
+                        }
+
+
+                        progressBar.setVisibility(View.GONE);
                     }
+
                 }
 
 
-                for (int i=0;i<list.size();i++)
+
+                /*for (int i=0;i<list.size();i++)
                 {
                     if (list.get(i).getAnswer().equals(""))
                     {
@@ -188,7 +244,7 @@ public class MainActivity extends Activity {
 
                 listDataChild.put(listDataHeader.get(0), top250); // Header, Child data
                 listDataChild.put(listDataHeader.get(1), nowShowing);
-                listDataChild.put(listDataHeader.get(2), comingSoon);
+                listDataChild.put(listDataHeader.get(2), comingSoon);*/
             }
 
             @Override
@@ -212,23 +268,24 @@ public class MainActivity extends Activity {
 
        // listDataHeader = new ArrayList<String>();
 
-        for (int i=0;i<list.size();i++)
+        /*for (int i=0;i<list.size();i++)
         {
             if (list.get(i).getAnswer().equals(""))
             {
                 listDataHeader.add(list.get(i).getQuestion());
             }
-        }
+        }*/
 
-        //String q1="Which year Did You start preparing for GRE";
-        // String q2="Why did you select such a position in the respective company";
-        //String q3="What was your average pointer in btech?";
+       //String q1="Which year Did You start preparing for GRE";
+
+        //String q2="Why did you select such a position in the respective company";
+       // String q3="What was your average pointer in btech?";
 
 
         // Adding child data
-        //listDataHeader.add("Which year Did You start preparing for GRE");
-        //listDataHeader.add("Why did you select such a position in the respective company");
-        // listDataHeader.add("What was your average pointer in btech?");
+        //listDataHeader.add(q1);
+        //listDataHeader.add(q2);
+        //listDataHeader.add(q3);
 
 
         // Adding child data
@@ -244,9 +301,9 @@ public class MainActivity extends Activity {
 
 
 
-         //listDataChild.put(listDataHeader.get(0), top250); // Header, Child data
-        //listDataChild.put(listDataHeader.get(1), nowShowing);
-        //listDataChild.put(listDataHeader.get(2), comingSoon);
+         listDataChild.put(listDataHeader.get(0), top250); // Header, Child data
+         listDataChild.put(listDataHeader.get(1), nowShowing);
+         listDataChild.put(listDataHeader.get(2), comingSoon);
 
     }
 
